@@ -24,14 +24,6 @@ local function isCarroEletrico(modelo)
     return false
 end
 
--- Função para atualizar a UI
-local function atualizarUI(progresso)
-    SendNUIMessage({
-        action = "updateProgress",
-        progress = progresso
-    })
-end
-
 -- Função principal de carregamento
 local function carregarVeiculo()
     local playerPed = PlayerPedId()
@@ -45,8 +37,8 @@ local function carregarVeiculo()
                 carregando = true
                 local tempoInicial = GetGameTimer()
 
-                -- Mostrar UI
-                SendNUIMessage({ action = "showUI" })
+                -- Iniciar carregamento no servidor
+                TriggerServerEvent('electric_charging:iniciarCarregamento')
 
                 -- Loop de carregamento
                 while carregando do
@@ -54,13 +46,13 @@ local function carregarVeiculo()
                     local tempoDecorrido = (GetGameTimer() - tempoInicial) / 1000
                     progresso = math.floor((tempoDecorrido / config.tempoCarregamento) * 100)
 
-                    -- Atualizar UI
-                    atualizarUI(progresso)
+                    -- Atualizar progresso no servidor
+                    TriggerServerEvent('electric_charging:atualizarProgresso', progresso)
 
                     if progresso >= 100 then
                         carregando = false
                         SetVehicleFuelLevel(veiculo, 100.0) -- Define o combustível como 100%
-                        SendNUIMessage({ action = "hideUI" })
+                        TriggerServerEvent('electric_charging:pararCarregamento')
                         TriggerEvent("chat:addMessage", { args = { "Seu carro elétrico foi carregado com sucesso!" } })
                     end
                 end
